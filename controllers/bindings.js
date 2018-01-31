@@ -19,7 +19,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const debug = requrie('debug')('bindings:bindings')
+const debug = require('debug')('bindings:bindings')
 
 module.exports.start = (data) => {
     
@@ -29,6 +29,7 @@ module.exports.start = (data) => {
             app.use(bodyParser.urlencoded({extended: true}));
             debug('Receiving data to create bindings');
             app.post("/bindings", function(request, response){
+                console.log("test")
                 debug('Received data: %s', request.body);
             });
     

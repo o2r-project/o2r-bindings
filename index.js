@@ -17,7 +17,7 @@
 
 "use-strict";
 
-const debug = requrie('debug')('bindings')
+const debug = require('debug')('bindings')
 
 var bindings = require('./controllers/bindings');
 
