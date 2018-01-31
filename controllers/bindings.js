@@ -28,7 +28,7 @@ module.exports.start = (data) => {
         const app = express();
             app.use(bodyParser.urlencoded({extended: true}));
             debug('Receiving data to create bindings');
-            app.post("/bindings", function(request, response){
+            app.post("/api/v1/bindings", function(request, response){
                 console.log("test")
                 debug('Received data: %s', request.body);
             });
