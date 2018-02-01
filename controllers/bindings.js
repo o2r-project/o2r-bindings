@@ -20,21 +20,45 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const debug = require('debug')('bindings:bindings')
+const fs = require("fs");
 
-module.exports.start = (data) => {
+module.exports.start = (conf) => {
     
     return new Promise((resolve, reject) => {
      
         const app = express();
             app.use(bodyParser.urlencoded({extended: true}));
             debug('Receiving data to create bindings');
-            app.post("/api/v1/bindings", function(request, response){
-                console.log("test")
-                debug('Received data: %s', request.body);
+            app.post("/api/v1/bindings", function(req, res){
+                switch(req.body.purpose){
+                    case "showFigureCode":
+                        
+                        res.send({val:showFigureCode(req.body)});
+                        break;
+                    default:
+                        break;
+                }
             });
     
-        var bindings = app.listen(data.port, () => {
+        var bindings = app.listen(conf.port, () => {
             resolve(bindings);
         });
     });
 };
+
+function showFigureCode(binding){
+    var paper = __dirname + "/" + binding.id + "/" + binding.mainfile;
+
+    const readerStream = fs.createReadStream(paper);
+        readerStream.setEncoding('utf8');
+    
+    // Handle stream events --> data, end, and error
+    var data = '';
+    readerStream
+        .on('data', function(chunk) {
+           data += chunk;
+        })
+        .on('end', function(){
+            console.log(data);
+        });
+}

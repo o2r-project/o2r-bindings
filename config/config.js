@@ -18,7 +18,6 @@
 const debug = require('debug')('bindings:config')
 
 var env = process.env;
-    console.log(env);
 var c = {};
     c.net={}
     c.net.port = env.BINDINGS_PORT || 8092
