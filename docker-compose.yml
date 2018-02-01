@@ -3,4 +3,4 @@ services:
   o2r-bindings:
     build: ./
     ports:
-     - "8080:8080"
+     - "8092:8092"

@@ -6,7 +6,5 @@ ADD . /app
 RUN cd /app; \
     npm install --production
 
-EXPOSE 8080
-
 # Run node 
 CMD ["node", "/app/index.js"]
