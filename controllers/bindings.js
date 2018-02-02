@@ -22,7 +22,9 @@ const bodyParser = require('body-parser');
 const debug = require('debug')('bindings:bindings')
 const fs = require("fs");
 
-module.exports.start = (conf) => {
+var bindings = {};
+
+bindings.start = (conf) => {
     
     return new Promise((resolve, reject) => {
      
@@ -32,33 +34,48 @@ module.exports.start = (conf) => {
             app.post("/api/v1/bindings", function(req, res){
                 switch(req.body.purpose){
                     case "showFigureCode":
-                        
-                        res.send({val:showFigureCode(req.body)});
+                        bindings.showFigureCode(req.body);
+                        res.send({callback:"ok"});
                         break;
                     default:
                         break;
                 }
             });
     
-        var bindings = app.listen(conf.port, () => {
-            resolve(bindings);
+        var bindingsListen = app.listen(conf.port, () => {
+            resolve(bindingsListen);
         });
     });
 };
 
-function showFigureCode(binding){
-    var paper = __dirname + "/" + binding.id + "/" + binding.mainfile;
-
+bindings.readRmarkdown = function(compendium_id, mainfile){
+    if (!compendium_id | !mainfile)
+        throw new Error('File does not exist.');
+    var paper = __dirname + "/" + compendium_id + "/" + mainfile;
+    fs.exists(paper,function(ex){
+        if (!ex)
+            throw new Error('File does not exist.');
+    });
     const readerStream = fs.createReadStream(paper);
-        readerStream.setEncoding('utf8');
-    
-    // Handle stream events --> data, end, and error
+    readerStream.setEncoding('utf8');
     var data = '';
     readerStream
         .on('data', function(chunk) {
            data += chunk;
         })
         .on('end', function(){
-            console.log(data);
-        });
+            bindings.saveRmarkdown(data);
+            return data;
+        })
+        .on('error', function(err){
+            debug(err);
+        });    
+};
+
+bindings.saveRmarkdown = function(data){
+    fs.writeFile(__dirname + '/testdata/paper_interactive.Rmd', data,'utf8', function(err){
+        debug(err)
+    });
 }
+
+module.exports = bindings;

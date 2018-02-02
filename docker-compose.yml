@@ -4,3 +4,5 @@ services:
     build: ./
     ports:
      - "8092:8092"
+    volumes: 
+     - "./controllers/testdata:/app/controllers/testdata"
