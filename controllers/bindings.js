@@ -19,63 +19,64 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const debug = require('debug')('bindings:bindings')
-const fs = require("fs");
+const debug = require('debug')('bindings:bindings');
+const fs = require('fs');
 
-var bindings = {};
+let bindings = {};
 
 bindings.start = (conf) => {
-    
     return new Promise((resolve, reject) => {
-     
         const app = express();
-            app.use(bodyParser.urlencoded({extended: true}));
-            debug('Receiving data to create bindings');
-            app.post("/api/v1/bindings", function(req, res){
-                switch(req.body.purpose){
-                    case "showFigureCode":
-                        bindings.showFigureCode(req.body);
-                        res.send({callback:"ok"});
-                        break;
-                    default:
-                        break;
-                }
-            });
-    
-        var bindingsListen = app.listen(conf.port, () => {
+        app.use(bodyParser.urlencoded({extended: true}));
+        debug('Receiving data to create bindings');
+        app.post('/api/v1/bindings', function(req, res) {
+            switch (req.body.purpose) {
+                case 'showFigureCode':
+                    bindings.showFigureCode(req.body);
+                    res.send({callback: 'ok'});
+                    break;
+                default:
+                    break;
+            }
+        });
+        let bindingsListen = app.listen(conf.port, () => {
+            debug('Bindings server listening on port %s', conf.port);
             resolve(bindingsListen);
         });
     });
 };
 
-bindings.readRmarkdown = function(compendium_id, mainfile){
-    if (!compendium_id | !mainfile)
+bindings.readRmarkdown = function( compendiumId, mainfile ) {
+    if ( !compendiumId | !mainfile ) {
         throw new Error('File does not exist.');
-    var paper = __dirname + "/" + compendium_id + "/" + mainfile;
-    fs.exists(paper,function(ex){
-        if (!ex)
+    }
+    let paper = __dirname + '/' + compendiumId + '/' + mainfile;
+    fs.exists(paper, function(ex) {
+        if (!ex) {
             throw new Error('File does not exist.');
+        }
     });
     const readerStream = fs.createReadStream(paper);
     readerStream.setEncoding('utf8');
-    var data = '';
+    let data = '';
     readerStream
         .on('data', function(chunk) {
            data += chunk;
         })
-        .on('end', function(){
+        .on('end', function() {
             bindings.saveRmarkdown(data);
             return data;
         })
-        .on('error', function(err){
+        .on('error', function(err) {
             debug(err);
-        });    
+        });
 };
 
-bindings.saveRmarkdown = function(data){
-    fs.writeFile(__dirname + '/testdata/paper_interactive.Rmd', data,'utf8', function(err){
-        debug(err)
-    });
-}
+bindings.saveRmarkdown = function(data) {
+    fs.writeFile(__dirname + '/testdata/paper_interactive.Rmd',
+                        data, 'utf8', function(err) {
+        debug(err);
+    } );
+};
 
 module.exports = bindings;

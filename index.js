@@ -17,8 +17,8 @@
 
 const config = require('./config/config');
 const debug = require('debug')('bindings');
-var bindings = require('./controllers/bindings');
+let bindings = require('./controllers/bindings');
 
 bindings.start({
   port: config.net.port
-})
+});

@@ -1,22 +1,23 @@
 {
-    "name": "o2r-bindings",
-    "version": "0.0.1",
-    "description": "Microservice for linking text, data, and code.",
-    "main": "index.js",
-    "scripts": {
-        "start": "node index.js",
-        "requests": "node bindings.js"
-    },
-    "author": "Markus Konkol (http://o2r.info)",
-    "license": "Apache-2.0",
-    "dependencies": {
-      "express": "~4.16.2",
-      "body-parser": "^1.18.2",
-      "debug": "^3.1.0"
-    },
-    "devDependencies": {
-        "asserthat":"0.11.0",
-        "eslint":"4.16.0",
-        "eslint-config-es":"0.9.1"
-    }    
+  "name": "o2r-bindings",
+  "version": "0.0.1",
+  "description": "Microservice for linking text, data, and code.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "requests": "node bindings.js"
+  },
+  "author": "Markus Konkol (http://o2r.info)",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "express": "~4.16.2",
+    "body-parser": "^1.18.2",
+    "debug": "^3.1.0"
+  },
+  "devDependencies": {
+    "asserthat": "0.11.0",
+    "eslint": "4.16.0",
+    "eslint-config-es": "0.9.1",
+    "eslint-config-google": "^0.9.1"
+  }
 }
