@@ -15,11 +15,11 @@
  *
  */
 
-const debug = require('debug')('bindings:config')
+const debug = require('debug')('bindings:config');
 
 var env = process.env;
 var c = {};
-    c.net={}
-    c.net.port = env.BINDINGS_PORT || 8092
+    c.net={};
+    c.net.port = env.BINDINGS_PORT || 8092;
 
 module.exports = c;

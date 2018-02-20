@@ -19,7 +19,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const debug = require('debug')('bindings:bindings');
+const debug = require('debug')('bindings');
 const fs = require('fs');
 
 let bindings = {};
@@ -32,8 +32,9 @@ bindings.start = (conf) => {
         app.post('/api/v1/bindings', function(req, res) {
             switch (req.body.purpose) {
                 case 'showFigureCode':
-                    bindings.showFigureCode(req.body);
-                    res.send({callback: 'ok'});
+                    saveRmarkdown(readRmarkdown(req.body.id, req.body.mainfile));
+                    res.send({
+                        callback: 'ok'});
                     break;
                 default:
                     break;
@@ -46,7 +47,7 @@ bindings.start = (conf) => {
     });
 };
 
-bindings.readRmarkdown = function( compendiumId, mainfile ) {
+let readRmarkdown = function( compendiumId, mainfile ) {
     if ( !compendiumId | !mainfile ) {
         throw new Error('File does not exist.');
     }
@@ -56,23 +57,10 @@ bindings.readRmarkdown = function( compendiumId, mainfile ) {
             throw new Error('File does not exist.');
         }
     });
-    const readerStream = fs.createReadStream(paper);
-    readerStream.setEncoding('utf8');
-    let data = '';
-    readerStream
-        .on('data', function(chunk) {
-           data += chunk;
-        })
-        .on('end', function() {
-            bindings.saveRmarkdown(data);
-            return data;
-        })
-        .on('error', function(err) {
-            debug(err);
-        });
+    return fs.readFileSync(paper, 'utf8');
 };
 
-bindings.saveRmarkdown = function(data) {
+let saveRmarkdown = function(data) {
     fs.writeFile(__dirname + '/testdata/paper_interactive.Rmd',
                         data, 'utf8', function(err) {
         debug(err);
