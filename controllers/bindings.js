@@ -20,7 +20,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const debug = require('debug')('bindings');
-const fs = require('fs');
+const fn = require('./generalFunctions');
 
 let bindings = {};
 
@@ -32,13 +32,16 @@ bindings.start = (conf) => {
         app.post('/api/v1/bindings', function(req, res) {
             switch (req.body.purpose) {
                 case 'showFigureCode':
-                    saveRmarkdown(readRmarkdown(req.body.id, req.body.mainfile));
-                    res.send({
-                        callback: 'ok'});
+                    bindings.showCode(req.body);
+                    break;
+                case 'showResultCode':
+                    bindings.showCode(req.body);
                     break;
                 default:
                     break;
             }
+            res.send({
+                callback: 'ok'});
         });
         let bindingsListen = app.listen(conf.port, () => {
             debug('Bindings server listening on port %s', conf.port);
@@ -47,24 +50,12 @@ bindings.start = (conf) => {
     });
 };
 
-let readRmarkdown = function( compendiumId, mainfile ) {
-    if ( !compendiumId | !mainfile ) {
-        throw new Error('File does not exist.');
-    }
-    let paper = __dirname + '/' + compendiumId + '/' + mainfile;
-    fs.exists(paper, function(ex) {
-        if (!ex) {
-            throw new Error('File does not exist.');
-        }
-    });
-    return fs.readFileSync(paper, 'utf8');
-};
-
-let saveRmarkdown = function(data) {
-    fs.writeFile(__dirname + '/testdata/paper_interactive.Rmd',
-                        data, 'utf8', function(err) {
-        debug(err);
-    } );
+bindings.showCode = function(binding) {
+    let fileContent = fn.readRmarkdown(binding.id, binding.mainfile);
+    let codeLines = fn.handleCodeLines(binding.codeLines);
+    let code = fn.extractCode(fileContent, codeLines);
+    fn.saveResult(code, binding.id, binding.result);
+    // fn.modifyMainfile(binding, fileContent);
 };
 
 module.exports = bindings;
