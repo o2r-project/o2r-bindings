@@ -19,6 +19,7 @@
 
 const fs = require('fs');
 const debug = require('debug')('bindings');
+const path = require('path');
 
 let fn = {};
 
@@ -31,7 +32,7 @@ fn.modifyMainfile = function(binding, fileContent) {
             splitFileContent.forEach(function(elem) {
                 newContent = newContent + elem + '\n';
             });
-        fn.saveRmarkdown(newContent, binding.mainfile);
+        fn.saveRmarkdown(newContent, binding.id, binding.mainfile);
     } else {
         fileContent = fileContent.replace(new RegExp(binding.result, 'g'), '__' + binding.result + '__');
         fn.saveRmarkdown(fileContent, binding.id, binding.mainfile);
@@ -51,7 +52,7 @@ fn.extractCode = function(fileContent, codeLines) {
 fn.handleCodeLines = function(lines) {
     let codeLines = [];
     lines.forEach(function(elem) {
-        if (elem.indexOf('-') > -1) {
+        if (elem.toString().indexOf(/-/i) > -1) {
             let range = elem.split('-');
             for (let i = range[0]; i <= range[1]; i++) {
                 codeLines.push(Number(i)-1); // -1 is required as the code lines from the front end start counting at 1.
@@ -67,31 +68,33 @@ fn.readRmarkdown = function(compendiumId, mainfile) {
     if ( !compendiumId | !mainfile ) {
         throw new Error('File does not exist.');
     }
-    let paper = __dirname + '/' + compendiumId + '/' + mainfile;
+    let paper = path.join('tmp', 'o2r', 'compendium', compendiumId, mainfile);
     fs.exists(paper, function(ex) {
         if (!ex) {
+            debug('Cannot open file %s', paper);
             throw new Error('File does not exist.');
         }
     });
     return fs.readFileSync(paper, 'utf8');
 };
 
-fn.saveResult = function(data, id, fileName) {
+fn.saveResult = function(data, compendiumId, fileName) {
     fileName = fileName.replace(' ', '');
     fileName = fileName.replace('.', '_');
     fileName = fileName.replace(',', '_');
-    if (!fs.existsSync(__dirname + '/' + id + '/bindings')) {
-        fs.mkdirSync(__dirname + '/' + id + '/bindings');
+    if (!fs.existsSync(path.join('tmp', 'o2r', 'compendium', compendiumId, 'bindings'))) {
+        fs.mkdirSync(path.join('tmp', 'o2r', 'compendium', compendiumId, 'bindings'));
     }
-    fileName = 'bindings/' + fileName + '.Rmd';
-    fn.saveRmarkdown(data, id, fileName);
+    fileName = path.join('bindings', fileName + '.Rmd');
+    fn.saveRmarkdown(data, compendiumId, fileName);
 };
 
-fn.saveRmarkdown = function(data, id, fileName) {
-    let dir = __dirname + '/' + id + '/' + fileName;
+fn.saveRmarkdown = function(data, compendiumId, fileName) {
+    let dir = path.join('tmp', 'o2r', 'compendium', compendiumId, fileName);
     fs.writeFile(dir, data, 'utf8', function(err) {
         debug(err);
     });
+    debug('Saved result under the directory %s', dir);
 };
 
 module.exports = fn;

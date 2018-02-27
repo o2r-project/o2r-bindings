@@ -1,8 +1,13 @@
-FROM node:8.9.4
+FROM node:8-alpine
 
-ADD . /app
+COPY package.json package.json
 
-RUN cd /app; \
-    npm install --production
+RUN apk add --no-cache
+RUN npm install --production
+
+COPY config config
+COPY controllers controllers
+COPY controllers/bindings.js controllers/bindings.js 
+COPY index.js index.js
     
-CMD ["node", "/app/index.js"]
+CMD ["node", "index.js"]

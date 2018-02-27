@@ -27,9 +27,11 @@ let bindings = {};
 bindings.start = (conf) => {
     return new Promise((resolve, reject) => {
         const app = express();
+        app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({extended: true}));
         debug('Receiving data to create bindings');
         app.post('/api/v1/bindings', function(req, res) {
+            debug('Received the following data: %s', req.body.id);
             switch (req.body.purpose) {
                 case 'showFigureCode':
                     bindings.showCode(req.body);
@@ -41,7 +43,9 @@ bindings.start = (conf) => {
                     break;
             }
             res.send({
-                callback: 'ok'});
+                callback: 'ok',
+                temp: 'bla',
+                data: req.body.id});
         });
         let bindingsListen = app.listen(conf.port, () => {
             debug('Bindings server listening on port %s', conf.port);
@@ -51,11 +55,12 @@ bindings.start = (conf) => {
 };
 
 bindings.showCode = function(binding) {
+    debug('Start creating the binding %s for the result %s', binding.purpose, binding.result);
     let fileContent = fn.readRmarkdown(binding.id, binding.mainfile);
     let codeLines = fn.handleCodeLines(binding.codeLines);
     let code = fn.extractCode(fileContent, codeLines);
     fn.saveResult(code, binding.id, binding.result);
-    // fn.modifyMainfile(binding, fileContent);
+    fn.modifyMainfile(binding, fileContent);
 };
 
 module.exports = bindings;
