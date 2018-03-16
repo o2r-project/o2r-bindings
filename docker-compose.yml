@@ -4,6 +4,7 @@ services:
     build: ./
     ports:
      - "8092:8092"
+     - "8000:8000"
     volumes: 
      - "./controllers/testdata:/controllers/testdata"
     environment: 

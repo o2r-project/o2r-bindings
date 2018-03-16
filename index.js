@@ -16,7 +16,6 @@
  */
 
 const config = require('./config/config');
-const debug = require('debug')('bindings');
 let bindings = require('./controllers/bindings');
 
 bindings.start({

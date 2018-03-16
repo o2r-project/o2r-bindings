@@ -3,16 +3,28 @@
 const bindings = require('../controllers/bindings');
 // const assert = require('assertthat');
 
-/* let req = {
-    id: 'testdata',
-    mainfile: 'testfile.Rmd',
-    task: 'inspect',
-    purpose: 'showFigureCode',
-    result: '3.14',
-    lineOfResult: 24,
-    codeLines: ['17', '25']
-}; */
+ let req = {
+    id: 'spacetime',
+    mainfile: 'main.Rmd',
+    codeLines: [{
+        'start': 25,
+        'end': 26
+    },
+    {
+        'start': 
+    }],
+    variable: 'threshold <- 10',
+    figure: 'Figure 4',
+    widget: {
+      type: 'slider',
+      min: 0,
+      max: 100,
+      init: 50,
+      step: 1,
+      label: 'Change the threshold by using the slider.'
+      }
+};
 
-/* test('test', () => {
-    let content = bindings.showCode(req);
-}); */
+test('test', () => {
+    bindings.manipulateFigure(req);
+});

@@ -40,28 +40,45 @@ fn.modifyMainfile = function(binding, fileContent) {
 };
 
 fn.extractCode = function(fileContent, codeLines) {
-    let newContent = '---' + fileContent.split('---')[1] + '---\n' + '```{r}';
+    let newContent = '';
     let splitFileContent = fileContent.split('\n');
     codeLines.forEach(function(elem) {
-        newContent = newContent + '\n' + splitFileContent[elem] + '\n';
+        newContent += splitFileContent[elem] + '\n';
     });
-    newContent += '```';
+    return newContent;
+};
+
+fn.wrapCode = function(sourcecode, compendiumId, result) {
+    let get = "#' @get /" + result.replace(/\s/g, '').toLowerCase() + '\n' +
+                "#' @png \n" +
+                'function(newValue){ \n' +
+                'newValue = as.numeric(newValue) \n';
+                //'newValue = as.numeric(newValue) \n' + 'library("xts") \n library("RColorBrewer") \n library("foreign") \n library("plm") \n library("sp") \n library("spacetime") \n library("gstat") \n library("mapdata") \n library("rgdal") \n library("maps") \n library("maptools") \n';
+    let code = sourcecode.split('\n');
+        code[code.length-2] = 'print(' + code[code.length-2] + ')';
+    let newCode = '';
+        code.forEach(function(elem) {
+            newCode += elem + '\n';
+        });
+    let newContent = get + newCode + '}';
+    return newContent;
+};
+
+fn.replaceVariable = function(code, variable) {
+    let newContent = code.replace(variable.text, variable.varName + ' = newValue');
     return newContent;
 };
 
 fn.handleCodeLines = function(lines) {
     let codeLines = [];
     lines.forEach(function(elem) {
-        if (elem.toString().indexOf(/-/i) > -1) {
-            let range = elem.split('-');
-            for (let i = range[0]; i <= range[1]; i++) {
-                codeLines.push(Number(i)-1); // -1 is required as the code lines from the front end start counting at 1.
-            };
-        } else {
-            codeLines.push(Number(elem)-1);
-        }
+        for (let i = elem.start; i <= elem.end; i++) {
+            codeLines.push(Number(i)-1); // -1 is required as the code lines from the front end start counting at 1.
+        };
     });
-    return codeLines.sort();
+    return codeLines.sort(function(a, b) {
+        return a-b;
+    });
 };
 
 fn.readRmarkdown = function(compendiumId, mainfile) {
@@ -82,14 +99,22 @@ fn.saveResult = function(data, compendiumId, fileName) {
     fileName = fileName.replace(' ', '');
     fileName = fileName.replace('.', '_');
     fileName = fileName.replace(',', '_');
-    if (!fs.existsSync(path.join('tmp', 'o2r', 'compendium', compendiumId, 'bindings'))) {
-        fs.mkdirSync(path.join('tmp', 'o2r', 'compendium', compendiumId, 'bindings'));
+    if (!fs.existsSync(path.join('tmp', 'o2r', 'compendium', compendiumId))) {
+        fs.mkdirSync(path.join('tmp', 'o2r', 'compendium', compendiumId));
     }
-    fileName = path.join('bindings', fileName + '.Rmd');
-    fn.saveRmarkdown(data, compendiumId, fileName);
+    fileName = path.join(fileName + '.R');
+    fn.saveRFile(data, compendiumId, fileName);
 };
 
-fn.saveRmarkdown = function(data, compendiumId, fileName) {
+fn.createRunFile = function(compendiumId, result) {
+    let content = 'library("plumber")' + '\n' +
+                    'path = paste("/tmp/o2r/compendium/' + compendiumId + '/' + result + '.R", sep = "")\n' +
+                    'r <- plumb(path)\n' +
+                    'r$run(host = "0.0.0.0", port=8000)';
+    fn.saveRFile(content, compendiumId, result+'run.R');
+};
+
+fn.saveRFile = function(data, compendiumId, fileName) {
     let dir = path.join('tmp', 'o2r', 'compendium', compendiumId, fileName);
     fs.writeFile(dir, data, 'utf8', function(err) {
         debug(err);
