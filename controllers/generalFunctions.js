@@ -95,6 +95,13 @@ fn.readRmarkdown = function(compendiumId, mainfile) {
     return fs.readFileSync(paper, 'utf8');
 };
 
+fn.readCsv = function(compendiumId, datasets) {
+    if ( !compendiumId | datasets ) {
+        throw new Error('File does not exist.');
+    }
+    let datafile = path.join('tmp', 'o2r', 'compendium', compendiumId, datasets[0].file.split('/').pop());
+};
+
 fn.saveResult = function(data, compendiumId, fileName) {
     fileName = fileName.replace(' ', '');
     fileName = fileName.replace('.', '_');

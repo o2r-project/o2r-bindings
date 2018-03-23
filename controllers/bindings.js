@@ -35,32 +35,33 @@ bindings.start = (conf) => {
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({extended: true}));
         debug('Receiving data to create bindings');
-        app.post('/api/v1/bindings/discover/discoverNumber', function(req, res) {
+        app.post('/api/v1/bindings/discover/number', function(req, res) {
             res.send({
                 callback: 'ok',
                 data: req.body});
         });
-        app.post('/api/v1/bindings/discover/discoverFigure', function(req, res) {
+        app.post('/api/v1/bindings/discover/figure', function(req, res) {
             res.send({
                 callback: 'ok',
                 data: req.body});
         });
-        app.post('/api/v1/bindings/inspect/inspectPaperDataCode', function(req, res) {
+        app.post('/api/v1/bindings/inspect/paperDataCode', function(req, res) {
             res.send({
                 callback: 'ok',
                 data: req.body});
         });
-        app.post('/api/v1/bindings/inspect/inspectNumberDataCode', function(req, res) {
+        app.post('/api/v1/bindings/inspect/numberDataCode', function(req, res) {
             res.send({
                 callback: 'ok',
                 data: req.body});
         });
-        app.post('/api/v1/bindings/inspect/inspectFigureDataCode', function(req, res) {
+        app.post('/api/v1/bindings/inspect/figureDataCode', function(req, res) {
+            bindings.showFigureDataCode(req.body);
             res.send({
                 callback: 'ok',
                 data: req.body});
         });
-        app.post('/api/v1/bindings/manipulate/manipulateFigure', function(req, res) {
+        app.post('/api/v1/bindings/manipulate/figure', function(req, res) {
             bindings.manipulateFigure(req.body);
             res.send({
                 callback: 'ok',
@@ -85,34 +86,29 @@ bindings.manipulateFigure = function(binding) {
     let fileContent = fn.readRmarkdown(binding.id, binding.mainfile);
         fileContent = fn.replaceVariable(fileContent, binding.variable);
     let codeLines = fn.handleCodeLines(binding.codeLines);
-    let code = fn.extractCode(fileContent, codeLines);
-    let wrappedCode = fn.wrapCode(code, binding.id, binding.figure);
+    let extractedCode = fn.extractCode(fileContent, codeLines);
+    let wrappedCode = fn.wrapCode(extractedCode, binding.id, binding.figure);
     fn.saveResult(wrappedCode, binding.id, binding.figure.replace(/\s/g, '').toLowerCase());
     fn.createRunFile(binding.id, binding.figure.replace(/\s/g, '').toLowerCase());
 };
 
-bindings.showCode = function(binding) {
-    debug('Start creating the binding %s for the result %s', binding.purpose, binding.result);
+bindings.showFigureDataCode = function(binding) {
+    debug('Start creating the binding %s for the result %s', binding.purpose, binding.figure);
     let fileContent = fn.readRmarkdown(binding.id, binding.mainfile);
     let codeLines = fn.handleCodeLines(binding.codeLines);
-    let code = fn.extractCode(fileContent, codeLines);
-    fn.saveResult(code, binding.id, binding.result);
-    fn.modifyMainfile(binding, fileContent);
-};
-
-bindings.createInteractiveFigure = function(binding) {
-    debug('Start creating manipulation binding for %s for figure %s', binding.id, binding.figure);
+    let extractedCode = fn.extractCode(fileContent, codeLines);
+    fn.saveResult(extractedCode, binding.id, binding.figure);
+    let dataContent = fn.readCsv(binding.id, binding.dataset);
+    let extractedData = fn.extractData(dataContent, bindings.dataset);
+    fn.saveDatasets(extractedCode, binding.id, binding.figure.replace(/\s/g, '').toLowerCase());
+    //fn.modifyMainfile(binding, fileContent);
 };
 
 bindings.runR = function(binding) {
     debug('Start running R script %s', binding.id);
-    // debug('File exists? %s', fs.existsSync(path.join('tmp', 'o2r', 'compendium', binding.id, 'figure4.R')));
-    // debug('File exists? %s', fs.existsSync(path.join('tmp', 'o2r', 'compendium', binding.id, 'main.Rmd')));
-    // debug('File exists? %s', fs.existsSync(path.join('tmp', 'o2r', 'compendium', binding.id, 'figure4run.R')));
     let run = rscript(path.join(path.join('tmp', 'o2r', 'compendium', binding.id, binding.figure.replace(/\s/g, '').toLowerCase() + 'run.R')))
         .data(binding.id)
         .callSync();
-    //console.log(run);
 };
 
 module.exports = bindings;
