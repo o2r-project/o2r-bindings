@@ -62,10 +62,7 @@ bindings.start = (conf) => {
                 data: req.body});
         });
         app.post('/api/v1/bindings/manipulate/figure', function(req, res) {
-            bindings.manipulateFigure(req.body);
-            res.send({
-                callback: 'ok',
-                data: req.body});
+            bindings.manipulateFigure(req.body, res);
         });
         app.post('/api/v1/bindings/manipulate/run', function(req, res) {
             debug('Start running plumber service for %s', req.body.id);
@@ -81,7 +78,7 @@ bindings.start = (conf) => {
     });
 };
 
-bindings.manipulateFigure = function(binding) {
+bindings.manipulateFigure = function(binding, response) {
     debug('Start creating the binding %s for the result %s for the compendium %s', binding.purpose, binding.figure, binding.id);
     let fileContent = fn.readRmarkdown(binding.id, binding.mainfile);
         fileContent = fn.replaceVariable(fileContent, binding.variable);
@@ -90,6 +87,10 @@ bindings.manipulateFigure = function(binding) {
     let wrappedCode = fn.wrapCode(extractedCode, binding.id, binding.figure);
     fn.saveResult(wrappedCode, binding.id, binding.figure.replace(/\s/g, '').toLowerCase());
     fn.createRunFile(binding.id, binding.figure.replace(/\s/g, '').toLowerCase());
+    binding.codesnippet = binding.figure.replace(/\s/g, '').toLowerCase() + '.R';
+    response.send({
+        callback: 'ok',
+        data: binding});
 };
 
 bindings.showFigureDataCode = function(binding) {
