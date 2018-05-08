@@ -22,7 +22,7 @@ const bodyParser = require('body-parser');
 const debug = require('debug')('bindings');
 const rscript = require('r-script');
 const path = require('path');
-const fs = require('fs')
+// const fs = require('fs');
 
 const fn = require('./generalFunctions');
 
@@ -34,42 +34,28 @@ bindings.start = (conf) => {
         const app = express();
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({extended: true}));
-        debug('Receiving data to create bindings');
-        app.post('/api/v1/bindings/discover/number', function(req, res) {
-            res.send({
-                callback: 'ok',
-                data: req.body});
-        });
-        app.post('/api/v1/bindings/discover/figure', function(req, res) {
-            res.send({
-                callback: 'ok',
-                data: req.body});
-        });
-        app.post('/api/v1/bindings/inspect/paperDataCode', function(req, res) {
-            res.send({
-                callback: 'ok',
-                data: req.body});
-        });
-        app.post('/api/v1/bindings/inspect/numberDataCode', function(req, res) {
-            res.send({
-                callback: 'ok',
-                data: req.body});
-        });
-        app.post('/api/v1/bindings/inspect/figureDataCode', function(req, res) {
+        debug('Service to create bindings');
+        app.post('/api/v1/bindings/inspectCodeDataFigure', function(req, res) {
             bindings.showFigureDataCode(req.body);
             res.send({
                 callback: 'ok',
                 data: req.body});
         });
-        app.post('/api/v1/bindings/manipulate/figure', function(req, res) {
+        app.post('/api/v1/bindings/inspectCodeDataNumber', function(req, res) {
+            // ...
+        });
+        app.post('/api/v1/bindings/manipulateFigure', function(req, res) {
             bindings.manipulateFigure(req.body, res);
         });
-        app.post('/api/v1/bindings/manipulate/run', function(req, res) {
-            debug('Start running plumber service for %s', req.body.id);
-            bindings.runR(req.body);
+        app.post('/api/v1/bindings/manipulateNumber', function(req, res) {
+            // ...
+        });
+        app.post('/api/v1/bindings/runPlumberService', function(req, res) {
             res.send({
                 callback: 'ok',
                 data: req.body});
+            debug('Start running plumber service for binding %s', req.body.id);
+            bindings.runR(req.body);
         });
         let bindingsListen = app.listen(conf.port, () => {
             debug('Bindings server listening on port %s', conf.port);
@@ -79,15 +65,15 @@ bindings.start = (conf) => {
 };
 
 bindings.manipulateFigure = function(binding, response) {
-    debug('Start creating the binding %s for the result %s for the compendium %s', binding.purpose, binding.figure, binding.id);
-    let fileContent = fn.readRmarkdown(binding.id, binding.mainfile);
-        fileContent = fn.replaceVariable(fileContent, binding.variable);
-    let codeLines = fn.handleCodeLines(binding.codeLines);
+    debug('Start creating binding: purpose %s, result: %s, compendium: %s', binding.purpose, binding.result.value, binding.id);
+    let fileContent = fn.readRmarkdown(binding.id, binding.code.file);
+        fileContent = fn.replaceVariable(fileContent, binding.code.parameter);
+    let codeLines = fn.handleCodeLines(binding.code.codeLines);
     let extractedCode = fn.extractCode(fileContent, codeLines);
-    let wrappedCode = fn.wrapCode(extractedCode, binding.id, binding.figure);
-    fn.saveResult(wrappedCode, binding.id, binding.figure.replace(/\s/g, '').toLowerCase());
-    fn.createRunFile(binding.id, binding.figure.replace(/\s/g, '').toLowerCase());
-    binding.codesnippet = binding.figure.replace(/\s/g, '').toLowerCase() + '.R';
+    let wrappedCode = fn.wrapCode(extractedCode, binding.id, binding.result.value, binding.code.parameter.val);
+    fn.saveResult(wrappedCode, binding.id, binding.result.value.replace(/\s/g, '').toLowerCase());
+    fn.createRunFile(binding.id, binding.result.value.replace(/\s/g, '').toLowerCase(), binding.port);
+    binding.codesnippet = binding.result.value.replace(/\s/g, '').toLowerCase() + '.R';
     response.send({
         callback: 'ok',
         data: binding});
@@ -106,10 +92,11 @@ bindings.showFigureDataCode = function(binding) {
 };
 
 bindings.runR = function(binding) {
-    debug('Start running R script %s', binding.id);
-    let run = rscript(path.join(path.join('tmp', 'o2r', 'compendium', binding.id, binding.figure.replace(/\s/g, '').toLowerCase() + 'run.R')))
-        .data(binding.id)
-        .callSync();
+    debug('Start running R script for %s', binding.result.value);
+    let run = rscript(path.join(path.join('tmp', 'o2r', 'compendium', binding.id, binding.result.value.replace(/\s/g, '').toLowerCase() + 'run.R')))
+        .call(function(err, d) {
+            debug('Started service: %s', d);
+        });
 };
 
 module.exports = bindings;

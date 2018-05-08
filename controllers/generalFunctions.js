@@ -48,12 +48,14 @@ fn.extractCode = function(fileContent, codeLines) {
     return newContent;
 };
 
-fn.wrapCode = function(sourcecode, compendiumId, result) {
+fn.wrapCode = function(sourcecode, compendiumId, result, value) {
     let get = "#' @get /" + result.replace(/\s/g, '').toLowerCase() + '\n' +
                 "#' @png \n" +
-                'function(newValue){ \n' +
-                'newValue = as.numeric(newValue) \n';
-                //'newValue = as.numeric(newValue) \n' + 'library("xts") \n library("RColorBrewer") \n library("foreign") \n library("plm") \n library("sp") \n library("spacetime") \n library("gstat") \n library("mapdata") \n library("rgdal") \n library("maps") \n library("maptools") \n';
+                'function(newValue){ \n';
+    if (!isNaN(value)) {
+        debug('Value %s is a number', value);
+        get = get + 'newValue = as.numeric(newValue) \n';
+    }
     let code = sourcecode.split('\n');
         code[code.length-2] = 'print(' + code[code.length-2] + ')';
     let newCode = '';
@@ -65,6 +67,7 @@ fn.wrapCode = function(sourcecode, compendiumId, result) {
 };
 
 fn.replaceVariable = function(code, variable) {
+    debug('Replace by variable %s', variable);
     let newContent = code.replace(variable.text, variable.varName + ' = newValue');
     return newContent;
 };
@@ -82,6 +85,7 @@ fn.handleCodeLines = function(lines) {
 };
 
 fn.readRmarkdown = function(compendiumId, mainfile) {
+    debug('Read RMarkdown %s from compendium %s', mainfile, compendiumId);
     if ( !compendiumId | !mainfile ) {
         throw new Error('File does not exist.');
     }
@@ -113,11 +117,11 @@ fn.saveResult = function(data, compendiumId, fileName) {
     fn.saveRFile(data, compendiumId, fileName);
 };
 
-fn.createRunFile = function(compendiumId, result) {
+fn.createRunFile = function(compendiumId, result, port) {
     let content = 'library("plumber")' + '\n' +
                     'path = paste("/tmp/o2r/compendium/' + compendiumId + '/' + result + '.R", sep = "")\n' +
                     'r <- plumb(path)\n' +
-                    'r$run(host = "0.0.0.0", port=8000)';
+                    'r$run(host = "0.0.0.0", port=' + port + ')';
     fn.saveRFile(content, compendiumId, result+'run.R');
 };
 

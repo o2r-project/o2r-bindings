@@ -327,10 +327,10 @@ n = 10
 tgrd = xts(1:n, seq(min(index(wind.data)), max(index(wind.data)), length=n))
 pred.grd = STF(grd, tgrd)
 
-
 ###################################################
+model="Sph"
 days = 1.0
-v = vgmST("separable", space = vgm(0.6, "Sph", 750000), time = vgm(1, "Sph", days * 3600 * 24), sill=0.6)
+v = vgmST("separable", space = vgm(0.6, model, 750000), time = vgm(1, model, days * 3600 * 24), sill=0.6)
 wind.ST = krigeST(values ~ 1, wind.data, pred.grd, v)
 colnames(wind.ST@data) <- "sqrt_speed"
 
