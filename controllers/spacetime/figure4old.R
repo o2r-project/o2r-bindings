@@ -1,11 +1,7 @@
 #' @get /figure4
 #' @png 
 function(newValue){ 
-  #newValue = as.numeric(newValue) 
-  library("mapdata")
-  library("xts")
-  library("gstat")
-  library("RColorBrewer")
+  newValue = as.numeric(newValue) 
   options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
   set.seed(1331)
   data("wind", package = "gstat")
@@ -45,7 +41,6 @@ function(newValue){
   wind.data = stConstruct(velocities, space = list(values = 1:ncol(velocities)), 
                           time = wind$time, SpatialObj = pts, interval = TRUE)
   fname = system.file("shapes/sids.shp", package="maptools")[1]
-  library("maptools")
   nc = readShapePoly(fname, proj4string=CRS("+proj=longlat +datum=NAD27"))
   time = as.POSIXct(strptime(c("1974-07-01", "1979-07-01"), "%Y-%m-%d"), 
                     tz = "GMT")
@@ -57,7 +52,6 @@ function(newValue){
     SID = c(nc$SID74, nc$SID79))
   nct = STFDF(sp = as(nc, "SpatialPolygons"), time, data, endTime)
   states.m = map('state', plot=FALSE, fill=TRUE)
-  
   IDs <- sapply(strsplit(states.m$names, ":"), function(x) x[1])
   states = map2SpatialPolygons(states.m, IDs=IDs)
   yrs = 1970:1986
@@ -74,9 +68,8 @@ function(newValue){
   n = 10
   tgrd = xts(1:n, seq(min(index(wind.data)), max(index(wind.data)), length=n))
   pred.grd = STF(grd, tgrd)
-  days  = 1.0
-  model = newValue
-  v = vgmST("separable", space = vgm(0.6, model, 750000), time = vgm(1, model, days * 3600 * 24), sill=0.6)
+  days  = newValue
+  v = vgmST("separable", space = vgm(0.6, "Sph", 750000), time = vgm(1, "Sph", days * 3600 * 24), sill=0.6)
   wind.ST = krigeST(values ~ 1, wind.data, pred.grd, v)
   colnames(wind.ST@data) <- "sqrt_speed"
   layout = list(list("sp.lines", m, col='grey'),

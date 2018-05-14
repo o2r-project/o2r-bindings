@@ -22,10 +22,8 @@ const bodyParser = require('body-parser');
 const debug = require('debug')('bindings');
 const rscript = require('r-script');
 const path = require('path');
-// const fs = require('fs');
 
 const fn = require('./generalFunctions');
-
 
 let bindings = {};
 
@@ -34,7 +32,7 @@ bindings.start = (conf) => {
         const app = express();
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({extended: true}));
-        debug('Service to create bindings');
+        debug('Start service to create bindings');
         app.post('/api/v1/bindings/inspectCodeDataFigure', function(req, res) {
             bindings.showFigureDataCode(req.body);
             res.send({
@@ -65,8 +63,10 @@ bindings.start = (conf) => {
 };
 
 bindings.manipulateFigure = function(binding, response) {
-    debug('Start creating binding: purpose %s, result: %s, compendium: %s', binding.purpose, binding.result.value, binding.id);
+    debug('Start creating binding. Purpose: %s, result: %s, compendium: %s',
+                binding.purpose, binding.result.value, binding.id);
     let fileContent = fn.readRmarkdown(binding.id, binding.code.file);
+        fn.modifyMainfile(fileContent, binding.result, binding.code.file, binding.id);
         fileContent = fn.replaceVariable(fileContent, binding.code.parameter);
     let codeLines = fn.handleCodeLines(binding.code.codeLines);
     let extractedCode = fn.extractCode(fileContent, codeLines);
@@ -80,22 +80,25 @@ bindings.manipulateFigure = function(binding, response) {
 };
 
 bindings.showFigureDataCode = function(binding) {
-    debug('Start creating the binding %s for the result %s', binding.purpose, binding.figure);
+    debug('Start creating the binding %s for the result %s',
+        binding.purpose, binding.figure);
     let fileContent = fn.readRmarkdown(binding.id, binding.mainfile);
     let codeLines = fn.handleCodeLines(binding.codeLines);
     let extractedCode = fn.extractCode(fileContent, codeLines);
     fn.saveResult(extractedCode, binding.id, binding.figure);
     let dataContent = fn.readCsv(binding.id, binding.dataset);
     let extractedData = fn.extractData(dataContent, bindings.dataset);
-    fn.saveDatasets(extractedCode, binding.id, binding.figure.replace(/\s/g, '').toLowerCase());
-    //fn.modifyMainfile(binding, fileContent);
+    fn.saveDatasets(extractedCode, binding.id,
+        binding.figure.replace(/\s/g, '').toLowerCase());
+    // fn.modifyMainfile(binding, fileContent);
 };
 
 bindings.runR = function(binding) {
     debug('Start running R script for %s', binding.result.value);
-    let run = rscript(path.join(path.join('tmp', 'o2r', 'compendium', binding.id, binding.result.value.replace(/\s/g, '').toLowerCase() + 'run.R')))
+    let run = rscript(path.join(path.join('tmp', 'o2r', 'compendium',
+        binding.id, binding.result.value.replace(/\s/g, '').toLowerCase() + 'run.R')))
         .call(function(err, d) {
-            debug('Started service: %s', d);
+            debug('Started service: %s', binding.result.value);
         });
 };
 
