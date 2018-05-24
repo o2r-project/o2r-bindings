@@ -22,7 +22,7 @@ const bodyParser = require('body-parser');
 const debug = require('debug')('bindings');
 const rscript = require('r-script');
 const path = require('path');
-
+const net = require('net');
 const fn = require('./generalFunctions');
 
 let bindings = {};
@@ -94,11 +94,23 @@ bindings.showFigureDataCode = function(binding) {
 };
 
 bindings.runR = function(binding) {
-    debug('Start running R script for %s', binding.result.value);
-    let run = rscript(path.join(path.join('tmp', 'o2r', 'compendium',
-        binding.id, binding.result.value.replace(/\s/g, '').toLowerCase() + 'run.R')))
-        .call(function(err, d) {
-            debug('Started service: %s', binding.result.value);
+    let server = net.createServer(function(socket) {
+        socket.write('Echo server\r\n');
+        socket.pipe(socket);
+    });
+    
+        server.listen(binding.port, 'localhost');
+        server.on('error', function (e) {
+            debug("port %s is not free", binding.port);
+        });
+        server.on('listening', function (e) {
+            server.close();
+            debug("port %s is free", binding.port);
+            let filepath = path.join('tmp', 'o2r', 'compendium', binding.id, binding.result.value.replace(/\s/g, '').toLowerCase() + 'run.R');
+            let run = rscript(filepath)
+                .call(function(err, d) {
+                    debug('Started service: %s', binding.result.value);
+                });
         });
 };
 
