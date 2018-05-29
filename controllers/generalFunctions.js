@@ -57,9 +57,9 @@ fn.modifyMainfile = function(fileContent, result, file, compendiumId) {
     } else if (result.type == 'figure') {
         fileContent = fileContent.replace(new RegExp(result.value, 'g'), '**_' + result.value + '_**');
         fn.saveRFile(fileContent, compendiumId, file);
-        exec('Rscript -e "rmarkdown::render(\'' + path.join('tmp', 'o2r', 'compendium', compendiumId, file) + '\')"', function(err) {
+        /* exec('Rscript -e "rmarkdown::render(\'' + path.join('tmp', 'o2r', 'compendium', compendiumId, file) + '\')"', function(err) {
             if (err) throw err;
-        });
+        }); */
         debug('End modifying file');
     }
 };
@@ -105,7 +105,7 @@ fn.wrapCode = function(sourcecode, compendiumId, result, value) {
         get = get + 'newValue = as.numeric(newValue) \n';
     }
     let code = sourcecode.split('\n');
-        code[code.length-2] = 'print(' + code[code.length-2] + ')';
+        // code[code.length-2] = 'print(' + code[code.length-2] + ')';
     let newCode = '';
         code.forEach(function(elem) {
             newCode += elem + '\n';
@@ -140,8 +140,8 @@ fn.createRunFile = function(compendiumId, result, port) {
     debug('Start creating run file for compendium %s for result %s running under port %s',
             compendiumId, result, port);
     let content = 'library("plumber")' + '\n' +
-                    'path = paste("/tmp/o2r/compendium/' + compendiumId +
-                        '/' + result + '.R", sep = "")\n' +
+                    'setwd(file.path("tmp", "o2r", "compendium", "' + compendiumId + '"))' + '\n' +
+                    'path = paste("'+result + '.R", sep = "")\n' +
                     'r <- plumb(path)\n' +
                     'r$run(host = "0.0.0.0", port=' + port + ')';
     fn.saveRFile(content, compendiumId, result+'run.R');

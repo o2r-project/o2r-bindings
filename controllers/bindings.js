@@ -109,8 +109,12 @@ bindings.runR = function(binding) {
             let filepath = path.join('tmp', 'o2r', 'compendium', binding.id, binding.result.value.replace(/\s/g, '').toLowerCase() + 'run.R');
             let run = rscript(filepath)
                 .call(function(err, d) {
+                    if (err) { 
+                        debug('error: %s', err.toString());
+                    }
                     debug('Started service: %s', binding.result.value);
                 });
+            debug('Started rscript: %o', run);
         });
 };
 
