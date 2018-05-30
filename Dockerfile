@@ -2,7 +2,7 @@ FROM rocker/geospatial:latest
 
 SHELL ["/bin/bash", "-c"]
 
-RUN R -e 'install.packages(c("diveMove", "trip", "adehabitatLT", "plm", "cshapes", "plumber", "STEPCAM", "MCMCglmm", "gdistance", "compositions", "latticeExtra"))'
+RUN R -e 'install.packages(c("diveMove", "trip", "adehabitatLT", "plm", "cshapes", "plumber", "STEPCAM", "MCMCglmm", "gdistance", "compositions", "latticeExtra", "ggplot2", "dplyr", "rasterVis", "RColorBrewer", "mapproj", "gridExtra"))'
 # based on https://gist.github.com/remarkablemark/aacf14c29b3f01d6900d13137b21db3a
 RUN apt-get update \
     && apt-get install -y curl \
