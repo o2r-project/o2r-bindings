@@ -31,4 +31,17 @@ COPY index.js index.js
 COPY controllers controllers
 COPY controllers/bindings.js controllers/bindings.js 
 
+# Metadata http://label-schema.org/rc1/
+LABEL maintainer="o2r-project <https://o2r.info>" \
+  org.label-schema.vendor="o2r project" \
+  org.label-schema.url="http://o2r.info" \
+  org.label-schema.name="o2r bindings" \
+  org.label-schema.description="linking data, text, and code for research transparency" \    
+  org.label-schema.version=$VERSION \
+  org.label-schema.vcs-url=$VCS_URL \
+  org.label-schema.vcs-ref=$VCS_REF \
+  org.label-schema.build-date=$BUILD_DATE \
+  org.label-schema.docker.schema-version="rc1"
+
 CMD ["node", "index.js"]
+
