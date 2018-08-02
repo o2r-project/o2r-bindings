@@ -105,7 +105,7 @@ fn.wrapCode = function(sourcecode, compendiumId, result, value) {
         get = get + 'newValue = as.numeric(newValue) \n';
     }
     let code = sourcecode.split('\n');
-        // code[code.length-2] = 'print(' + code[code.length-2] + ')';
+        //code[code.length-2] = 'print(' + code[code.length-2] + ')';
     let newCode = '';
         code.forEach(function(elem) {
             newCode += elem + '\n';
