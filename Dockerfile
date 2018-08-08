@@ -3,6 +3,7 @@ FROM rocker/geospatial:latest
 SHELL ["/bin/bash", "-c"]
 
 RUN R -e 'install.packages(c("diveMove", "trip", "adehabitatLT", "plm", "cshapes", "plumber", "STEPCAM", "MCMCglmm", "MCMCpack", "gdistance", "compositions", "latticeExtra", "ggplot2", "dplyr", "rasterVis", "RColorBrewer", "mapproj", "gridExtra", "ggplot2", "plyr", "reshape2", "wesanderson", "grid", "plotrix", "shotGroups", "reshape", "RSAGA", "pROC", "vcd", "caret", "fields", "extRemes", "truncnorm", "palaeoSig", "rioja", "FME", "SoilR", "verification", "MASS"))'
+RUN R -e 'install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)'
 # based on https://gist.github.com/remarkablemark/aacf14c29b3f01d6900d13137b21db3a
 RUN apt-get update \
     && apt-get install -y curl \
