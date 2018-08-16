@@ -7,7 +7,7 @@
     "start": "node index.js",
     "requests": "node bindings.js"
   },
-  "author": "Markus Konkol (http://o2r.info)",
+  "author": "Markus Konkol (https://o2r.info)",
   "license": "Apache-2.0",
   "dependencies": {
     "assertthat": "^1.0.0",

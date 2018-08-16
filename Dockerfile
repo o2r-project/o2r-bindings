@@ -34,7 +34,7 @@ COPY controllers/bindings.js controllers/bindings.js
 # Metadata http://label-schema.org/rc1/
 LABEL maintainer="o2r-project <https://o2r.info>" \
   org.label-schema.vendor="o2r project" \
-  org.label-schema.url="http://o2r.info" \
+  org.label-schema.url="https://o2r.info" \
   org.label-schema.name="o2r bindings" \
   org.label-schema.description="linking data, text, and code for research transparency" \    
   org.label-schema.version=$VERSION \
