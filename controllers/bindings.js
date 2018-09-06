@@ -67,9 +67,9 @@ bindings.manipulateFigure = function(binding, response) {
                 binding.purpose, binding.result.value, binding.id);
     let fileContent = fn.readRmarkdown(binding.id, binding.code.file);
         fn.modifyMainfile(fileContent, binding.result, binding.code.file, binding.id);
-        fileContent = fn.replaceVariable(fileContent, binding.code.parameter);
     let codeLines = fn.handleCodeLines(binding.code.codeLines);
     let extractedCode = fn.extractCode(fileContent, codeLines);
+        extractedCode = fn.replaceVariable(extractedCode, binding.code.parameter);
     let wrappedCode = fn.wrapCode(extractedCode, binding.id, binding.result.value, binding.code.parameter.val);
     fn.saveResult(wrappedCode, binding.id, binding.result.value.replace(/\s/g, '').toLowerCase());
     fn.createRunFile(binding.id, binding.result.value.replace(/\s/g, '').toLowerCase(), binding.port);

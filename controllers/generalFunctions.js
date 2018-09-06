@@ -100,9 +100,12 @@ fn.wrapCode = function(sourcecode, compendiumId, result, value) {
     debug('Start wrapping code');
     let get = "#' @get /" + result.replace(/\s/g, '').toLowerCase() + '\n' +
                 "#' @png \n" +
-                'function(newValue){ \n';
+                'function(newValue){ \n' +
+                'startAnalysis <- Sys.time() \n';
     if (!isNaN(value)) {
         get = get + 'newValue = as.numeric(newValue) \n';
+    } else if (value === 'false' || value === 'FALSE' || value === 'true' || value === 'TRUE') {
+        get = get + 'newValue = as.logical(newValue) \n';
     }
     let code = sourcecode.split('\n');
         //code[code.length-2] = 'print(' + code[code.length-2] + ')';
@@ -110,7 +113,10 @@ fn.wrapCode = function(sourcecode, compendiumId, result, value) {
         code.forEach(function(elem) {
             newCode += elem + '\n';
         });
-    let newContent = get + newCode + '}';
+    let newContent = get + newCode + 'endAnalysis <- Sys.time() \n' + 
+                                    'totaltime <- difftime(endAnalysis, startAnalysis, units="secs") \n' +
+                                    'message(paste("Total time is: ", totaltime)) \n' +  
+                                    '}';
     debug('End wrapping code');
     return newContent;
 };
