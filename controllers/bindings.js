@@ -33,20 +33,8 @@ bindings.start = (conf) => {
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({extended: true}));
         debug('Start service to create bindings');
-        app.post('/api/v1/bindings/inspectCodeDataFigure', function(req, res) {
-            bindings.showFigureDataCode(req.body);
-            res.send({
-                callback: 'ok',
-                data: req.body});
-        });
-        app.post('/api/v1/bindings/inspectCodeDataNumber', function(req, res) {
-            // ...
-        });
-        app.post('/api/v1/bindings/manipulateFigure', function(req, res) {
-            bindings.manipulateFigure(req.body, res);
-        });
-        app.post('/api/v1/bindings/manipulateNumber', function(req, res) {
-            // ...
+        app.post('/api/v1/bindings/binding', function(req, res) {
+            bindings.implementBinding(req.body, res);
         });
         app.post('/api/v1/bindings/runPlumberService', function(req, res) {
             res.send({
@@ -62,9 +50,9 @@ bindings.start = (conf) => {
     });
 };
 
-bindings.manipulateFigure = function(binding, response) {
-    debug('Start creating binding. Purpose: %s, result: %s, compendium: %s',
-                binding.purpose, binding.result.value, binding.id);
+bindings.implementBinding = function(binding, response) {
+    debug('Start creating binding: result: %s, compendium: %s',
+                binding.result.value, binding.id);
     let fileContent = fn.readRmarkdown(binding.id, binding.code.file);
         fn.modifyMainfile(fileContent, binding.result, binding.code.file, binding.id);
     let codeLines = fn.handleCodeLines(binding.code.codeLines);
@@ -79,7 +67,7 @@ bindings.manipulateFigure = function(binding, response) {
         data: binding});
 };
 
-bindings.showFigureDataCode = function(binding) {
+/*bindings.showFigureDataCode = function(binding) {
     debug('Start creating the binding %s for the result %s',
         binding.purpose, binding.figure);
     let fileContent = fn.readRmarkdown(binding.id, binding.mainfile);
@@ -91,7 +79,7 @@ bindings.showFigureDataCode = function(binding) {
     fn.saveDatasets(extractedCode, binding.id,
         binding.figure.replace(/\s/g, '').toLowerCase());
     // fn.modifyMainfile(binding, fileContent);
-};
+};*/
 
 bindings.runR = function(binding) {
     let server = net.createServer(function(socket) {

@@ -57,9 +57,9 @@ fn.modifyMainfile = function(fileContent, result, file, compendiumId) {
     } else if (result.type == 'figure') {
         fileContent = fileContent.replace(new RegExp(result.value, 'g'), '**_' + result.value + '_**');
         fn.saveRFile(fileContent, compendiumId, file);
-        /* exec('Rscript -e "rmarkdown::render(\'' + path.join('tmp', 'o2r', 'compendium', compendiumId, file) + '\')"', function(err) {
+        exec('Rscript -e "rmarkdown::render(\'' + path.join('tmp', 'o2r', 'compendium', compendiumId, file) + '\')"', function(err) {
             if (err) throw err;
-        }); */
+        });
         debug('End modifying file');
     }
 };
@@ -99,7 +99,7 @@ fn.extractCode = function(fileContent, codeLines) {
 fn.wrapCode = function(sourcecode, compendiumId, result, value) {
     debug('Start wrapping code');
     let get = "#' @get /" + result.replace(/\s/g, '').toLowerCase() + '\n' +
-                "#' @png \n" +
+                "#' @png (width = 380, height = 380) \n" +
                 'function(newValue){ \n' +
                 'startAnalysis <- Sys.time() \n';
     if (!isNaN(value)) {
