@@ -30,11 +30,13 @@ let bindings = {};
 bindings.start = (conf) => {
     return new Promise((resolve, reject) => {
         const app = express();
-        app.use(bodyParser.json());
-        app.use(bodyParser.urlencoded({extended: true}));
+              app.use(bodyParser.json());
+              app.use(bodyParser.urlencoded({extended: true}));
+        
         debug('Start service to create bindings');
+        
         app.post('/api/v1/bindings/binding', function(req, res) {
-            bindings.implementBinding(req.body, res);
+            bindings.createBinding(req.body, res);
         });
         app.post('/api/v1/bindings/runPlumberService', function(req, res) {
             res.send({
@@ -50,18 +52,17 @@ bindings.start = (conf) => {
     });
 };
 
-bindings.implementBinding = function(binding, response) {
-    debug('Start creating binding: result: %s, compendium: %s',
-                binding.result.value, binding.id);
-    let fileContent = fn.readRmarkdown(binding.id, binding.code.file);
-        fn.modifyMainfile(fileContent, binding.result, binding.code.file, binding.id);
-    let codeLines = fn.handleCodeLines(binding.code.codeLines);
-    let extractedCode = fn.extractCode(fileContent, codeLines);
-        extractedCode = fn.replaceVariable(extractedCode, binding.code.parameter);
-    let wrappedCode = fn.wrapCode(extractedCode, binding.id, binding.result.value, binding.code.parameter.val);
-    fn.saveResult(wrappedCode, binding.id, binding.result.value.replace(/\s/g, '').toLowerCase());
-    fn.createRunFile(binding.id, binding.result.value.replace(/\s/g, '').toLowerCase(), binding.port);
-    binding.codesnippet = binding.result.value.replace(/\s/g, '').toLowerCase() + '.R';
+bindings.createBinding = function(binding, response) {
+    debug( 'Start creating binding for result: %s, compendium: %s', binding.computationalResult.result, binding.id );
+    let fileContent = fn.readRmarkdown( binding.id, binding.sourcecode.file );
+    fn.modifyMainfile( fileContent, binding.computationalResult, binding.sourcecode.file, binding.id );
+    let codeLines = fn.handleCodeLines( binding.sourcecode.codeLines );
+    let extractedCode = fn.extractCode( fileContent, codeLines );
+        extractedCode = fn.replaceVariable( extractedCode, binding.sourcecode.parameter );
+    let wrappedCode = fn.wrapCode( extractedCode, binding.computationalResult.result, binding.sourcecode.parameter );
+    fn.saveResult( wrappedCode, binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase() );
+    fn.createRunFile( binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase(), binding.port );
+    binding.codesnippet = binding.computationalResult.result.replace(/\s/g, '').toLowerCase() + '.R';
     response.send({
         callback: 'ok',
         data: binding});
@@ -94,13 +95,13 @@ bindings.runR = function(binding) {
         server.on('listening', function (e) {
             server.close();
             debug("port %s is free", binding.port);
-            let filepath = path.join('tmp', 'o2r', 'compendium', binding.id, binding.result.value.replace(/\s/g, '').toLowerCase() + 'run.R');
+            let filepath = path.join('tmp', 'o2r', 'compendium', binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase() + 'run.R');
             let run = rscript(filepath)
                 .call(function(err, d) {
                     if (err) { 
                         debug('error: %s', err.toString());
                     }
-                    debug('Started service: %s', binding.result.value);
+                    debug('Started service: %s', binding.computationalResult.result);
                 });
             debug('Started rscript: %o', run);
         });

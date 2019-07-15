@@ -25,8 +25,7 @@ const exec = require('child_process').exec;
 let fn = {};
 
 fn.readRmarkdown = function(compendiumId, mainfile) {
-    debug('Start reading RMarkdown %s from compendium %s', 
-            mainfile, compendiumId);
+    debug('Start reading RMarkdown %s from compendium %s', mainfile, compendiumId);
     if ( !compendiumId | !mainfile ) {
         throw new Error('File does not exist.');
     }
@@ -42,8 +41,7 @@ fn.readRmarkdown = function(compendiumId, mainfile) {
 };
 
 fn.modifyMainfile = function(fileContent, result, file, compendiumId) {
-    debug('Start modifying file %s from %s for %s',
-            file, compendiumId, result.value);
+    debug('Start modifying file %s from %s for %s', file, compendiumId, result.result);
     if (result.type == 'number') {
         /* let splitFileContent = fileContent.split('\n');
         let lor = binding.lineOfResult-1;
@@ -55,9 +53,9 @@ fn.modifyMainfile = function(fileContent, result, file, compendiumId) {
         fn.saveRmarkdown(newContent, binding.id, binding.mainfile); 
         debug('End modifying file');*/
     } else if (result.type == 'figure') {
-        fileContent = fileContent.replace(new RegExp(result.value, 'g'), '**_' + result.value + '_**');
+        fileContent = fileContent.replace(new RegExp(result.result, 'g'), '**_' + result.result + '_**');
         fn.saveRFile(fileContent, compendiumId, file);
-        exec('Rscript -e "rmarkdown::render(\'' + path.join('tmp', 'o2r', 'compendium', compendiumId, file) + '\')"', function(err) {
+        exec('Rscript -e "rmarkdown::render(\'' + path.join('tmp', 'o2r', 'compendium', compendiumId, file) + '\', output_file = ' + "'display.html'" + ')"', function(err) {
             if (err) throw err;
         });
         debug('End modifying file');
@@ -65,8 +63,11 @@ fn.modifyMainfile = function(fileContent, result, file, compendiumId) {
 };
 
 fn.replaceVariable = function(code, parameter) {
-    debug('Start replacing parameter %s', parameter.text);
-    let newContent = code.replace(parameter.text, parameter.varName + ' = newValue');
+    let newContent = code;
+    for (let i = 0; i < parameter.length; i++) {
+        debug('Start replacing parameter %s', parameter[i].text);
+        newContent = newContent.replace(parameter[i].text, parameter[i].name + ' = newValue' + i);
+    }
     debug('End replacing parameter');
     return newContent;
 };
@@ -96,17 +97,27 @@ fn.extractCode = function(fileContent, codeLines) {
     return newContent;
 };
 
-fn.wrapCode = function(sourcecode, compendiumId, result, value) {
+fn.wrapCode = function(sourcecode, result, parameter) {
     debug('Start wrapping code');
+    let input = 'function(';
+    let transform = '';
+    for (let i=0;i<parameter.length;i++) {
+        input = input + 'newValue' + i;
+        if(i+1!=parameter.length){
+            input=input+',';
+        }
+        if (!isNaN(parameter[i].val)) {
+            transform = transform + 'newValue' + i + '=as.numeric(newValue' + i + ') \n'; 
+        } else if (parameter[i].val === 'false' || parameter[i].val === 'FALSE' || parameter[i].val === 'true' || parameter[i].val === 'TRUE') {
+            transform = transform + 'newValue' + i + '= as.logical(newValue'+ i + ') \n';
+        }
+    }
+    input=input+') { \n';
     let get = "#' @get /" + result.replace(/\s/g, '').toLowerCase() + '\n' +
                 "#' @png (width = 380, height = 380) \n" +
-                'function(newValue){ \n' +
-                'startAnalysis <- Sys.time() \n';
-    if (!isNaN(value)) {
-        get = get + 'newValue = as.numeric(newValue) \n';
-    } else if (value === 'false' || value === 'FALSE' || value === 'true' || value === 'TRUE') {
-        get = get + 'newValue = as.logical(newValue) \n';
-    }
+                input +
+                'startAnalysis <- Sys.time() \n' + 
+                transform;
     let code = sourcecode.split('\n');
         //code[code.length-2] = 'print(' + code[code.length-2] + ')';
     let newCode = '';
