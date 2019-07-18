@@ -56,8 +56,8 @@ bindings.createBinding = function(binding, response) {
     debug( 'Start creating binding for result: %s, compendium: %s', binding.computationalResult.result, binding.id );
     let fileContent = fn.readRmarkdown( binding.id, binding.sourcecode.file );
     fn.modifyMainfile( fileContent, binding.computationalResult, binding.sourcecode.file, binding.id );
-    let codeLines = fn.handleCodeLines( binding.sourcecode.codeLines );
-    let extractedCode = fn.extractCode( fileContent, codeLines );
+    let codelines = fn.handleCodeLines( binding.sourcecode.codelines );
+    let extractedCode = fn.extractCode( fileContent, codelines );
         extractedCode = fn.replaceVariable( extractedCode, binding.sourcecode.parameter );
     let wrappedCode = fn.wrapCode( extractedCode, binding.computationalResult.result, binding.sourcecode.parameter );
     fn.saveResult( wrappedCode, binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase() );

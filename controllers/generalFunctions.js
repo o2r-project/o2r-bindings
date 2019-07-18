@@ -74,23 +74,23 @@ fn.replaceVariable = function(code, parameter) {
 
 fn.handleCodeLines = function(lines) {
     debug('Start handling code lines');
-    let codeLines = [];
+    let codelines = [];
     lines.forEach(function(elem) {
         for (let i = elem.start; i <= elem.end; i++) {
-            codeLines.push(Number(i)-1); // -1 is required as the code lines from the front end start counting at 1.
+            codelines.push(Number(i)-1); // -1 is required as the code lines from the front end start counting at 1.
         };
     });
     debug('End handling code lines');
-    return codeLines.sort(function(a, b) {
+    return codelines.sort(function(a, b) {
         return a-b;
     });
 };
 
-fn.extractCode = function(fileContent, codeLines) {
+fn.extractCode = function(fileContent, codelines) {
     debug('Start extracting code');
     let newContent = '';
     let splitFileContent = fileContent.split('\n');
-    codeLines.forEach(function(elem) {
+    codelines.forEach(function(elem) {
         newContent += splitFileContent[elem] + '\n';
     });
     debug('End extracting code');
