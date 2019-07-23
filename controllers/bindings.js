@@ -24,6 +24,7 @@ const rscript = require('r-script');
 const path = require('path');
 const net = require('net');
 const fn = require('./generalFunctions');
+const processJson = require('./processJson');
 
 let bindings = {};
 
@@ -32,7 +33,14 @@ bindings.start = (conf) => {
         const app = express();
               app.use(bodyParser.json());
               app.use(bodyParser.urlencoded({extended: true}));
-        
+
+
+        debug('Extract codelines for bindings service');
+
+        app.post('/api/v1/bindings/extractR', function(req, res) {
+            bindings.implementExtractR(req.body, res);
+        });
+
         debug('Start service to create bindings');
         
         app.post('/api/v1/bindings/binding', function(req, res) {
@@ -63,6 +71,24 @@ bindings.createBinding = function(binding, response) {
     fn.saveResult( wrappedCode, binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase() );
     fn.createRunFile( binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase(), binding.port );
     binding.codesnippet = binding.computationalResult.result.replace(/\s/g, '').toLowerCase() + '.R';
+    response.send({
+        callback: 'ok',
+        data: binding});
+};
+
+bindings.implementExtractR = function (binding,response) {
+    debug( 'Start to extract codelines for result: %s, compendium: %s', binding.computationalResult.result, binding.id );
+
+    //Used for testing
+    //let file = fn.readFile('test',binding);
+
+    //Comment in if used with Service
+    let file = fn.readRmarkdown(binding.id, binding.sourcecode.file);
+
+    //Mock response TODO --> REPLACE CODED LINES
+    // Codelines = {"start":30,"end":424} 
+    binding.sourcecode.codelines = processJson.getCodeLines(file);
+    console.log(binding.sourcecode.codelines)
     response.send({
         callback: 'ok',
         data: binding});
