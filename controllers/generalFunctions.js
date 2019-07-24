@@ -25,7 +25,7 @@ const exec = require('child_process').exec;
 let fn = {};
 
 fn.readRmarkdown = function(compendiumId, mainfile) {
-    debug('Start reading RMarkdown %s from compendium %s', mainfile, compendiumId);
+    debug('Start reading RMarkdown %s from the compendium %s', mainfile, compendiumId);
     if ( !compendiumId | !mainfile ) {
         throw new Error('File does not exist.');
     }
@@ -97,7 +97,11 @@ fn.extractCode = function(fileContent, codelines) {
     return newContent;
 };
 
-fn.wrapCode = function(sourcecode, result, parameter) {
+fn.extractFigureSize = function (binding, fileContent){
+    return "699"
+}
+
+fn.wrapCode = function(sourcecode, result, parameter, figureSize) {
     debug('Start wrapping code');
     let input = 'function(';
     let transform = '';
@@ -114,7 +118,7 @@ fn.wrapCode = function(sourcecode, result, parameter) {
     }
     input=input+') { \n';
     let get = "#' @get /" + result.replace(/\s/g, '').toLowerCase() + '\n' +
-                "#' @png (width = 380, height = 380) \n" +
+                "#' @png (width = "+figureSize+") \n" +
                 input +
                 'startAnalysis <- Sys.time() \n' + 
                 transform;

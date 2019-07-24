@@ -55,11 +55,12 @@ bindings.start = (conf) => {
 bindings.createBinding = function(binding, response) {
     debug( 'Start creating binding for result: %s, compendium: %s', binding.computationalResult.result, binding.id );
     let fileContent = fn.readRmarkdown( binding.id, binding.sourcecode.file );
+    let figureSize = fn.extractFigureSize(binding, fileContent);
     fn.modifyMainfile( fileContent, binding.computationalResult, binding.sourcecode.file, binding.id );
     let codelines = fn.handleCodeLines( binding.sourcecode.codelines );
     let extractedCode = fn.extractCode( fileContent, codelines );
         extractedCode = fn.replaceVariable( extractedCode, binding.sourcecode.parameter );
-    let wrappedCode = fn.wrapCode( extractedCode, binding.computationalResult.result, binding.sourcecode.parameter );
+    let wrappedCode = fn.wrapCode( extractedCode, binding.computationalResult.result, binding.sourcecode.parameter, figureSize );
     fn.saveResult( wrappedCode, binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase() );
     fn.createRunFile( binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase(), binding.port );
     binding.codesnippet = binding.computationalResult.result.replace(/\s/g, '').toLowerCase() + '.R';
@@ -82,7 +83,7 @@ bindings.createBinding = function(binding, response) {
     // fn.modifyMainfile(binding, fileContent);
 };*/
 
-bindings.runR = function(binding) {
+bindings.runR = function ( binding ) {
     let server = net.createServer(function(socket) {
         socket.write('Echo server\r\n');
         socket.pipe(socket);
@@ -92,19 +93,22 @@ bindings.runR = function(binding) {
         server.on('error', function (e) {
             debug("port %s is not free", binding.port);
         });
-        server.on('listening', function (e) {
+        server.on('listening', function ( e ) {
             server.close();
             debug("port %s is free", binding.port);
             let filepath = path.join('tmp', 'o2r', 'compendium', binding.id, binding.computationalResult.result.replace(/\s/g, '').toLowerCase() + 'run.R');
             let run = rscript(filepath)
-                .call(function(err, d) {
-                    if (err) { 
+                .call(function ( err, d ) {
+                    if ( err ) { 
                         debug('error: %s', err.toString());
                     }
                     debug('Started service: %s', binding.computationalResult.result);
                 });
-            debug('Started rscript: %o', run);
+            debug('Started rscript: %o', filepath);
         });
+        server.close(function () {
+            console.log('server stopped');
+          });
 };
 
 module.exports = bindings;
