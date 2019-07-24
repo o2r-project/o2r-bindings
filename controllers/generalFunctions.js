@@ -98,7 +98,18 @@ fn.extractCode = function(fileContent, codelines) {
 };
 
 fn.extractFigureSize = function (binding, fileContent){
-    return "699"
+    debug('Start extracting figure width');
+    let figureSize = '';
+    let splitFileContent = fileContent.split('\n');
+    splitFileContent.forEach(function(elem) {
+        if ( elem.indexOf("out.width=")>=0 ) {
+            debug(elem.split('out.width=')[1].split('}')[0])
+            figureSize=elem.split('out.width=')[1].split('}')[0];
+        }
+    });
+    debug(figureSize);
+    debug('End extracting figure width');
+    return figureSize;
 }
 
 fn.wrapCode = function(sourcecode, result, parameter, figureSize) {
