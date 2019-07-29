@@ -34,15 +34,15 @@ bindings.start = (conf) => {
               app.use(bodyParser.json());
               app.use(bodyParser.urlencoded({extended: true}));
 
-
-        debug('Extract codelines for bindings service');
+        debug('Start service to create bindings');
 
         app.post('/api/v1/bindings/extractR', function(req, res) {
             bindings.implementExtractR(req.body, res);
         });
-
-        debug('Start service to create bindings');
-        
+   
+        app.post('/api/v1/bindings/searchBinding', function ( req, res ) {
+            bindings.searchBinding( req.body, res);
+        });
         app.post('/api/v1/bindings/binding', function(req, res) {
             bindings.createBinding(req.body, res);
         });
@@ -95,6 +95,13 @@ bindings.implementExtractR = function (binding,response) {
         data: binding});
 };
 
+bindings.searchBinding = function ( searchTerm, res) {
+    debug( 'Start searching for %s', searchTerm );
+    res.send({
+        callback: 'ok',
+        data: searchTerm});
+};
+
 /*bindings.showFigureDataCode = function(binding) {
     debug('Start creating the binding %s for the result %s',
         binding.purpose, binding.figure);
@@ -118,6 +125,8 @@ bindings.runR = function ( binding ) {
         server.listen(binding.port, 'localhost');
         server.on('error', function (e) {
             debug("port %s is not free", binding.port);
+            binding.port = binding.port+1;
+            bindings.runR(binding);
         });
         server.on('listening', function ( e ) {
             server.close();
