@@ -125,8 +125,6 @@ bindings.runR = function ( binding ) {
         server.listen(binding.port, 'localhost');
         server.on('error', function (e) {
             debug("port %s is not free", binding.port);
-            binding.port = binding.port+1;
-            bindings.runR(binding);
         });
         server.on('listening', function ( e ) {
             server.close();
